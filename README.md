@@ -4,6 +4,10 @@
 
 一个移动端健康饮食 App 的产品 + 设计原型，包含完整的 PRD、可交互高保真原型与设计系统规范。
 
+## 🔗 在线体验（Live Demo）
+
+**https://young1104.github.io/food-coach-app/**
+
 ---
 
 ## 项目背景
