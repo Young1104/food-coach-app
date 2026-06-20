@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Coach · AI 营养教练 — 高保真原型</title>
+<style>
+  :root{
+    --accent:#1A7D4B; --accent-press:#15643C; --accent-weak:#EAF3EC;
+    --green-deep:#103D2D; --green-deep2:#1A5740; --green-light:#DCEFC8; --green-light-ink:#16431F; --lime-pop:#B8E986;
+    --ink:#1C1C1E; --text:#3C3C43; --muted:#787880; --faint:#AEAEB2;
+    --bg:#F4F5F2; --card:#FFFFFF; --line:#E7E8E4; --soft:#F1F2EF;
+    --carb:#3B73C4; --protein:#1A7D4B; --fat:#D98A2B; --danger:#E5484D;
+    --r-sm:10px; --r:16px; --r-lg:20px; --btn:10px; --full:999px;
+    --e1:0 1px 2px rgba(0,0,0,.04);
+    --e2:0 6px 18px rgba(0,0,0,.08);
+    --e3:0 18px 44px rgba(0,0,0,.18);
+    --pad:20px;
+    --sans:'Inter','SF Pro Text',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  button:focus,button:focus-visible{outline:none;}
+  body{font-family:var(--sans);background:linear-gradient(165deg,#eceeec,#e6e7e4);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 16px;color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .head{text-align:center;margin-bottom:22px;max-width:900px;}
+  .head h1{font-size:24px;font-weight:800;letter-spacing:-.02em;}
+  .head h1 .dot{color:var(--accent);}
+  .head p{color:var(--muted);font-size:13.5px;margin-top:6px;line-height:1.55;}
+  .stage{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap;justify-content:center;}
+
+  .ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block;}
+
+  .phone{width:380px;height:824px;background:var(--bg);border-radius:46px;box-shadow:var(--e3),0 0 0 11px #0e0f12,0 0 0 13px #24262b;position:relative;overflow:hidden;flex:0 0 auto;}
+  .notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:116px;height:30px;background:#0e0f12;border-radius:var(--full);z-index:60;}
+  .statusbar{position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:14px;font-weight:600;z-index:55;}
+  .statusbar.lt{color:#fff;}
+  .statusbar .r{font-size:13px;letter-spacing:1px;}
+  .screen{position:absolute;inset:0;padding-top:52px;display:none;flex-direction:column;background:var(--bg);animation:fade .3s cubic-bezier(.2,0,0,1);}
+  .screen.active{display:flex;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .body{flex:1;overflow-y:auto;padding:2px var(--pad) 22px;}
+  .body::-webkit-scrollbar{width:0;}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:15px;border-radius:var(--btn);padding:15px;transition:transform .1s,filter .15s,background .15s;}
+  .btn-accent{background:var(--accent);color:#fff;} .btn-accent:active{background:var(--accent-press);transform:scale(.99);}
+  .btn-dark{background:var(--ink);color:#fff;} .btn-dark:active{transform:scale(.99);}
+  .btn-ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);} .btn-ghost:active{background:var(--soft);}
+  .btn[disabled]{background:#E9E9E7;color:var(--faint);pointer-events:none;}
+  .footbar{padding:12px var(--pad) calc(14px + env(safe-area-inset-bottom));}
+
+  .dots{display:flex;gap:6px;align-items:center;}
+  .dots i{height:4px;width:18px;border-radius:var(--full);background:#DCDCDA;}
+  .dots i.on{background:var(--accent);width:24px;}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;gap:12px;padding:8px var(--pad) 4px;}
+  .topbar .hi{flex:1;}
+  .topbar .hi span{font-size:12px;color:var(--muted);font-weight:500;}
+  .topbar .hi b{display:block;font-size:21px;font-weight:800;letter-spacing:-.02em;margin-top:2px;}
+  .topbar .ib{width:40px;height:40px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;position:relative;}
+  .topbar .ib .badge{position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--fat);border:2px solid var(--card);}
+  .topbar .ava{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#cfe6d4,#9ed0ad);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;}
+  .ptitle{font-size:24px;font-weight:800;letter-spacing:-.02em;padding:8px var(--pad) 2px;}
+  .psub{font-size:13px;color:var(--muted);padding:0 var(--pad) 6px;line-height:1.5;}
+
+  .sec{display:flex;align-items:center;justify-content:space-between;margin:30px 0 14px;}
+  .sec h3{font-size:19px;font-weight:800;letter-spacing:-.02em;}
+  .sec a{font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:2px;}
+  .sec a .ic{width:16px;height:16px;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:none;}
+
+  /* overview (progress snapshot, merged) */
+  /* 浅绿主卡（清新）+ 进度环 + 白瓦片 */
+  .ov{padding:20px;margin-top:10px;background:var(--green-light);border:none;color:var(--green-light-ink);}
+  .ov-top{display:flex;align-items:center;justify-content:space-between;}
+  .ov-l .lab{font-size:13px;color:#4a6b50;font-weight:600;}
+  .ov-l .num{margin-top:8px;display:flex;align-items:baseline;gap:5px;}
+  .ov-l .num b{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--green-light-ink);}
+  .ov-l .num span{font-size:13px;color:#4a6b50;font-weight:600;}
+  .ov .ring{width:66px;height:66px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;background:conic-gradient(var(--accent) var(--p,0%),rgba(22,64,31,.14) 0);transition:background .5s cubic-bezier(.2,0,0,1);}
+  .ov .ring::after{content:'';position:absolute;inset:7px;border-radius:50%;background:var(--green-light);}
+  .ov .ring span{position:relative;z-index:1;font-size:14px;font-weight:800;color:var(--green-light-ink);}
+  .ov .mac{display:flex;gap:10px;margin-top:18px;}
+  .ov .mac .m{flex:1;background:#fff;border-radius:12px;padding:11px 12px;}
+  .ov .mac .m .mt{font-size:11.5px;color:#5a7a5f;font-weight:600;}
+  .ov .mac .m b{font-size:15px;font-weight:700;margin-top:5px;display:block;color:var(--green-light-ink);}
+  .ov .foot{display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(22,64,31,.16);font-size:13px;font-weight:600;color:#2f5538;}
+  .ov .foot .ic{width:16px;height:16px;color:var(--accent);}
+  .ov .foot .sp{flex:1;} .ov .foot a{color:var(--green-light-ink);font-weight:700;cursor:pointer;text-decoration:underline;}
+
+  /* plan list */
+  .planhd{display:flex;align-items:center;gap:10px;}
+  .planhd .chip{font-size:11px;font-weight:600;color:var(--muted);background:var(--soft);padding:4px 10px;border-radius:var(--full);}
+  .planhd .chip.live{color:#fff;background:var(--ink);}
+  .plan{overflow:hidden;}
+  .mblock{border-top:1px solid var(--line);} .mblock:first-child{border-top:none;}
+  .mrow{display:flex;align-items:center;gap:13px;padding:14px 16px;}
+  .mrow .ph{width:46px;height:46px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:23px;flex:0 0 auto;cursor:pointer;}
+  .mrow .mi{flex:1;min-width:0;cursor:pointer;}
+  .mrow .mi .tag{font-size:11px;font-weight:600;color:var(--muted);}
+  .mrow .mi b{font-size:15px;font-weight:600;display:block;margin:2px 0;letter-spacing:-.01em;}
+  .mrow .mi small{font-size:12px;color:var(--muted);font-weight:500;}
+  .mrow .rt{font-size:14px;font-weight:700;flex:0 0 auto;text-align:right;min-width:52px;}
+  .mrow .rt small{display:block;font-size:10px;color:var(--muted);font-weight:600;margin-top:1px;}
+  .cbx{width:26px;height:26px;border-radius:50%;border:1.6px solid var(--line);background:var(--card);cursor:pointer;flex:0 0 auto;display:none;align-items:center;justify-content:center;color:transparent;transition:all .2s;}
+  .cbx .ic{width:15px;height:15px;stroke-width:2.4;}
+  .plan.adopted .cbx{display:flex;}
+  .cbx.done{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .mact{display:flex;gap:8px;padding:2px 16px 14px 16px;}
+  .mact button{border:1px solid var(--line);background:var(--card);border-radius:var(--btn);font-family:var(--sans);font-size:12.5px;font-weight:600;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--ink);outline:none;}
+  .mact button:active{background:var(--soft);}
+  .mact button .ic{width:15px;height:15px;color:var(--muted);}
+  .mact .why .ic{transition:transform .3s;}.mact .why.open .ic{transform:rotate(180deg);}
+  .whyinline{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.2,0,0,1);}
+  .whyinline.open{max-height:170px;}
+  .whyinline .in{padding:0 16px 14px 16px;}
+  .whyinline p{font-size:13px;color:var(--text);line-height:1.6;}
+  .whyinline .src{font-size:11.5px;color:var(--muted);margin-top:7px;font-weight:500;}
+  .mblock.removed{opacity:.45;}.mblock.removed .ph{filter:grayscale(1);}
+  .plan-foot{padding:14px 16px;border-top:1px solid var(--line);}
+  .foot-alt{text-align:center;font-size:13px;font-weight:500;color:var(--muted);margin-top:14px;cursor:pointer;} .foot-alt b{color:var(--ink);font-weight:700;}
+  .foot-prog{display:flex;align-items:center;gap:12px;}
+  .foot-prog .pb{flex:1;height:6px;background:var(--soft);border-radius:var(--full);overflow:hidden;}
+  .foot-prog .pb i{display:block;height:100%;background:var(--accent);border-radius:var(--full);transition:width .4s;}
+  .foot-prog .lab{font-size:13px;font-weight:700;white-space:nowrap;}
+
+  /* feeds */
+  .feed{display:flex;gap:14px;align-items:center;padding:14px;margin-bottom:10px;cursor:pointer;}
+  .feed .ph{width:52px;height:52px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto;}
+  .feed .fi{flex:1;min-width:0;}
+  .feed .fi b{font-size:14.5px;font-weight:600;display:block;margin:0 0 4px;line-height:1.35;letter-spacing:-.01em;}
+  .feed .fi span{font-size:12px;color:var(--muted);font-weight:500;}
+  .feed .cv{color:var(--faint);}
+
+  .safety{text-align:center;font-size:11px;color:var(--faint);margin-top:18px;line-height:1.4;}
+
+  /* nav */
+  .nav{display:flex;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:24px;margin:0 14px calc(12px + env(safe-area-inset-bottom));padding:11px 8px;box-shadow:var(--e2);}
+  .nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font-size:10px;font-weight:600;color:var(--faint);}
+  .nav a.on{color:var(--ink);}
+  .nav a.on .ic{color:var(--accent);}
+  .nav .center{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .nav .cop{width:50px;height:50px;border-radius:16px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 18px rgba(26,125,75,.42);margin-top:-28px;transition:transform .12s;}
+  .nav .cop .ic{width:24px;height:24px;stroke:#fff;}
+  .nav .cop:active{transform:scale(.92);}
+  .nav .center span{font-size:10px;font-weight:700;color:var(--accent);}
+
+  /* co-pilot */
+  #copilot{background:var(--bg);}
+  .cop-head{display:flex;align-items:center;gap:12px;padding:10px var(--pad);}
+  .cop-head .mk{width:36px;height:36px;border-radius:10px;background:var(--ink);display:flex;align-items:center;justify-content:center;}
+  .cop-head .mk .ic{stroke:#bdf36a;width:20px;height:20px;}
+  .cop-head .ti{flex:1;} .cop-head .ti b{font-size:16px;font-weight:700;display:block;} .cop-head .ti span{font-size:11.5px;color:var(--muted);font-weight:500;}
+  .cop-head .x{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--line);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+  .chatwrap{flex:1;overflow-y:auto;padding:10px var(--pad) 6px;display:flex;flex-direction:column;gap:12px;}
+  .chatwrap::-webkit-scrollbar{width:0;}
+  .bub{max-width:84%;padding:13px 15px;font-size:13.5px;line-height:1.6;font-weight:450;}
+  .bub.ai{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-radius:4px 16px 16px 16px;}
+  .bub.me{align-self:flex-end;background:var(--accent);color:#fff;border-radius:16px 16px 4px 16px;}
+  .bub.ai b{font-weight:700;}
+  .cop-sug{display:flex;flex-wrap:wrap;gap:8px;padding:0 var(--pad) 8px;}
+  .cop-sug .s{border:1px solid var(--line);background:var(--card);border-radius:var(--full);padding:9px 14px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--text);}
+  .cop-sug .s:active{background:var(--accent-weak);}
+  .composer{display:flex;align-items:center;gap:10px;padding:8px var(--pad) calc(12px + env(safe-area-inset-bottom));}
+  .composer .cam{width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--line);cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+  .composer .box{flex:1;display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--full);padding:6px 6px 6px 18px;}
+  .composer input{flex:1;border:none;background:transparent;outline:none;font-family:var(--sans);font-size:14px;}
+  .composer .snd{width:38px;height:38px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff;}
+
+  /* detail */
+  #detail{background:var(--card);}
+  .dt-hero{background:var(--accent-weak);border-radius:0 0 24px 24px;padding:10px var(--pad) 24px;}
+  .dt-hero .row{display:flex;justify-content:space-between;}
+  .dt-circle{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;}
+  .dt-img{width:160px;height:160px;border-radius:50%;background:var(--card);margin:8px auto 0;display:flex;align-items:center;justify-content:center;font-size:80px;box-shadow:var(--e1);}
+  .dt-body{padding:20px;}
+  .kit{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-weak);padding:6px 12px;border-radius:var(--full);}
+  .dt-body h2{font-size:23px;font-weight:800;letter-spacing:-.02em;margin-top:12px;}
+  .dt-macros{display:flex;justify-content:space-between;margin-top:18px;text-align:center;}
+  .dt-macros div b{font-size:17px;font-weight:700;} .dt-macros div span{font-size:11px;color:var(--muted);font-weight:500;display:block;margin-top:3px;}
+  .dt-actions{display:flex;gap:10px;margin-top:20px;}
+  .dt-actions .btn{flex:1;}
+  .dt-why{margin-top:18px;background:var(--soft);border-radius:var(--r);padding:15px;}
+  .dt-why .wl{font-size:11.5px;font-weight:700;color:var(--accent);} .dt-why p{font-size:13px;color:var(--text);line-height:1.6;margin-top:6px;} .dt-why .src{font-size:11.5px;color:var(--muted);margin-top:8px;}
+  .nf{margin-top:22px;} .nf h4{font-size:14px;font-weight:700;margin-bottom:4px;}
+  .nf .r{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .nf .r span{color:var(--muted);} .nf .r b{font-weight:700;}
+
+  /* cooking call */
+  #cooking{background:#0e0f12;}
+  .call-top{display:flex;align-items:center;gap:12px;padding:8px var(--pad);color:#fff;}
+  .call-top .mini{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;}
+  .call-top .ti{flex:1;} .call-top .ti b{font-size:15px;font-weight:700;display:block;}
+  .call-top .ti .live{font-size:11.5px;color:#A9AEB5;font-weight:500;display:flex;align-items:center;gap:6px;}
+  .call-top .ti .live i{width:7px;height:7px;border-radius:50%;background:#34C759;}
+  .coach{flex:1;margin:6px var(--pad);border-radius:var(--r-lg);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 34%,#1f3a2a,#15171b);overflow:hidden;}
+  .coach .spk{position:relative;width:112px;height:112px;border-radius:50%;background:linear-gradient(135deg,#2f9c5f,#1a7d4b);display:flex;align-items:center;justify-content:center;font-size:54px;}
+  .coach .spk::after{content:'';position:absolute;inset:-10px;border-radius:50%;border:2px solid rgba(52,199,89,.5);animation:pulse 1.8s ease-out infinite;}
+  @keyframes pulse{0%{transform:scale(1);opacity:.6;}100%{transform:scale(1.28);opacity:0;}}
+  .coach .nm{color:#fff;font-weight:600;font-size:13.5px;margin-top:16px;}
+  .wave{display:flex;gap:3px;align-items:flex-end;height:16px;margin-top:8px;}
+  .wave i{width:3px;background:#34C759;border-radius:2px;animation:wv .9s ease-in-out infinite;}
+  .wave i:nth-child(2){animation-delay:.15s;} .wave i:nth-child(3){animation-delay:.3s;} .wave i:nth-child(4){animation-delay:.45s;} .wave i:nth-child(5){animation-delay:.6s;}
+  @keyframes wv{0%,100%{height:4px;}50%{height:16px;}}
+  .coach .cap{position:absolute;left:16px;right:16px;bottom:16px;background:rgba(0,0,0,.55);color:#fff;font-size:13px;font-weight:450;line-height:1.55;padding:12px 14px;border-radius:14px;backdrop-filter:blur(6px);}
+  .selfpip{position:absolute;right:12px;top:12px;width:56px;height:76px;border-radius:12px;background:#222;display:flex;align-items:center;justify-content:center;font-size:24px;border:1.5px solid rgba(255,255,255,.25);}
+  .stepsheet{background:var(--card);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:18px var(--pad) 6px;}
+  .stepsheet .sh{display:flex;align-items:center;justify-content:space-between;}
+  .stepsheet .sn{font-size:12px;font-weight:700;color:var(--accent);}
+  .stepbar{display:flex;gap:5px;}
+  .stepbar i{width:22px;height:5px;border-radius:var(--full);background:var(--line);} .stepbar i.on{background:var(--accent);}
+  .stepsheet h4{font-size:19px;font-weight:700;margin:10px 0 4px;letter-spacing:-.01em;}
+  .stepsheet p{font-size:13.5px;color:var(--muted);line-height:1.55;}
+  .callctrl{display:flex;align-items:center;gap:12px;padding:14px var(--pad) calc(18px + env(safe-area-inset-bottom));background:var(--card);}
+  .callctrl .cbtn{width:48px;height:48px;border-radius:50%;background:var(--soft);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);flex:0 0 auto;}
+  .callctrl .cbtn.end{background:var(--danger);color:#fff;}
+  .callctrl .next{flex:1;height:50px;border-radius:var(--btn);background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+
+  /* insights */
+  .pcard{padding:18px;margin-top:8px;}
+  .pcard h4{font-size:14px;font-weight:700;}
+  .pbar{position:relative;height:10px;background:var(--soft);border-radius:var(--full);margin:22px 0 14px;}
+  .pbar i{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:var(--full);}
+  .pbar .tag{position:absolute;top:-28px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--full);}
+  .pbar .knob{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent);transform:translate(-50%,-50%);}
+  .pcard p{font-size:12.5px;color:var(--muted);line-height:1.5;}
+  .twocol{display:flex;gap:12px;margin-top:12px;}
+  .pcell{flex:1;padding:16px;}
+  .pcell .ph{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--muted);}
+  .pcell .ph .ic{width:16px;height:16px;}
+  .pcell .big{font-size:22px;font-weight:800;margin-top:12px;letter-spacing:-.02em;} .pcell .big small{font-size:11px;color:var(--muted);font-weight:600;margin-left:3px;}
+  .chartcard{padding:18px;margin-top:12px;}
+  .chartcard h4{font-size:14px;font-weight:700;}
+  .bars{display:flex;align-items:flex-end;justify-content:space-between;height:96px;margin-top:16px;}
+  .bars .bcol{display:flex;flex-direction:column;align-items:center;gap:7px;width:30px;}
+  .bars .bk{width:14px;border-radius:var(--full);background:var(--accent-weak);}
+  .bars .bcol.on .bk{background:var(--accent);}
+  .bars .bcol span{font-size:10px;color:var(--muted);font-weight:600;}
+  .streakrow{display:flex;align-items:center;gap:12px;padding:16px;margin-top:12px;}
+  .streakrow .ic{width:22px;height:22px;color:var(--fat);}
+  .streakrow b{font-size:16px;font-weight:700;} .streakrow span{font-size:12.5px;color:var(--muted);display:block;margin-top:1px;}
+
+  /* recipes */
+  .search{display:flex;align-items:center;gap:10px;padding:13px 16px;margin-top:6px;font-size:14px;color:var(--muted);}
+  .search .ic{width:19px;height:19px;color:var(--muted);}
+  .cats{display:flex;gap:9px;overflow-x:auto;margin-top:14px;padding-bottom:4px;}
+  .cats::-webkit-scrollbar{height:0;}
+  .cat{flex:0 0 auto;padding:8px 16px;border-radius:var(--full);font-size:13px;font-weight:500;background:var(--card);border:1px solid var(--line);cursor:pointer;color:var(--text);}
+  .cat.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .rgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:16px;}
+  .rcard{overflow:hidden;cursor:pointer;}
+  .rcard .rimg{height:104px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:44px;}
+  .rcard .ri{padding:12px 13px 14px;} .rcard .ri b{font-size:13.5px;font-weight:600;display:block;letter-spacing:-.01em;} .rcard .ri span{font-size:11.5px;color:var(--muted);display:block;margin-top:4px;}
+
+  /* camera */
+  #camera{background:#0e0f12;}
+  .cam-top{display:flex;justify-content:space-between;padding:10px 20px;color:#fff;}
+  .cam-top .cc{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;}
+  .viewfinder{flex:1;margin:8px 26px;border-radius:var(--r-lg);position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#242a30,#14161a);}
+  .viewfinder .fr{position:absolute;width:64%;aspect-ratio:1;}
+  .viewfinder .fr span{position:absolute;width:26px;height:26px;border:3px solid var(--accent);}
+  .viewfinder .fr .tl{top:0;left:0;border-right:0;border-bottom:0;border-radius:10px 0 0 0;}
+  .viewfinder .fr .tr{top:0;right:0;border-left:0;border-bottom:0;border-radius:0 10px 0 0;}
+  .viewfinder .fr .bl{bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 10px;}
+  .viewfinder .fr .br{bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 10px 0;}
+  .viewfinder .food{font-size:88px;}
+  .cam-hint{color:#c7ccd2;text-align:center;font-size:13px;font-weight:450;margin:14px 26px 0;}
+  .cam-ctrl{display:flex;align-items:center;justify-content:space-around;padding:18px 0 calc(20px + env(safe-area-inset-bottom));}
+  .cam-ctrl .side{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;}
+  .shutter{width:70px;height:70px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,.35);cursor:pointer;}
+  .shutter:active{transform:scale(.92);}
+  .cam-result{position:absolute;left:16px;right:16px;bottom:24px;background:var(--card);border-radius:var(--r);padding:15px;box-shadow:var(--e3);display:flex;align-items:center;gap:12px;transform:translateY(150%);transition:transform .4s cubic-bezier(.2,0,0,1);}
+  .cam-result.show{transform:translateY(0);}
+  .cam-result .ph{width:46px;height:46px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .cam-result .ci{flex:1;} .cam-result .ci b{font-size:14.5px;font-weight:700;} .cam-result .ci span{font-size:11.5px;color:var(--muted);display:block;margin-top:2px;}
+  .cam-result button{background:var(--accent);color:#fff;border:none;border-radius:var(--full);padding:10px 15px;font-family:var(--sans);font-weight:600;font-size:12.5px;cursor:pointer;}
+
+  /* profile */
+  .prof-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:10px 0 4px;}
+  .prof-head .av{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#cfe6d4,#9ed0ad);display:flex;align-items:center;justify-content:center;font-size:36px;}
+  .prof-head b{font-size:19px;font-weight:800;margin-top:12px;letter-spacing:-.01em;} .prof-head span{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .prof-stats{display:flex;padding:16px 8px;margin-top:18px;}
+  .prof-stats div{flex:1;text-align:center;position:relative;} .prof-stats div+div::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);height:26px;width:1px;background:var(--line);}
+  .prof-stats b{font-size:18px;font-weight:800;} .prof-stats span{display:block;font-size:11px;color:var(--muted);margin-top:3px;}
+  .plist{margin-top:16px;overflow:hidden;}
+  .plist .row{display:flex;align-items:center;gap:14px;padding:15px 16px;border-bottom:1px solid var(--line);cursor:pointer;}
+  .plist .row:last-child{border-bottom:none;}
+  .plist .lic{width:36px;height:36px;border-radius:10px;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--ink);flex:0 0 auto;}
+  .plist .lic .ic{width:18px;height:18px;}
+  .plist .rt{flex:1;font-size:14.5px;font-weight:500;} .plist .cv{color:var(--faint);}
+
+  /* questions / loading */
+  .qhead{display:flex;align-items:center;gap:8px;padding:8px 8px 4px 4px;}
+  .iconbtn{width:44px;height:44px;border:none;background:transparent;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+  .iconbtn:active{background:var(--soft);}
+  .qhead .grow{flex:1;} .qhead .skip{border:none;background:transparent;font-family:var(--sans);font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;padding:8px 10px;}
+  .qbody{flex:1;overflow-y:auto;padding:8px 22px 22px;}
+  .kicker{color:var(--accent);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;}
+  h2.title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin:10px 0 8px;}
+  .sub{color:var(--muted);font-size:14.5px;line-height:1.55;}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:var(--full);padding:11px 16px;font-size:14.5px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;min-height:44px;}
+  .chip:active{transform:scale(.97);}
+  .chip .ck{width:0;overflow:hidden;opacity:0;transition:all .18s;}.chip .ck .ic{width:15px;height:15px;color:var(--accent);stroke-width:2.4;}
+  .chip.sel{background:var(--accent-weak);border-color:var(--accent);} .chip.sel .ck{width:16px;opacity:1;}
+  .field{margin-top:24px;} .field label{font-size:12.5px;font-weight:600;color:var(--text);}
+  .field textarea{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:var(--r);padding:14px;font-family:var(--sans);font-size:15px;resize:none;min-height:84px;background:var(--card);transition:border .15s;}
+  .field textarea:focus{outline:none;border-color:var(--accent);}
+  #loading{align-items:center;justify-content:center;}
+  #loading .lwrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:0 40px;text-align:center;}
+  .spinner{width:54px;height:54px;border-radius:50%;border:4px solid var(--soft);border-top-color:var(--accent);animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .lstep{color:var(--muted);font-size:14px;min-height:20px;transition:opacity .3s;}
+  #loading h3{font-size:20px;font-weight:700;}
+
+  .toast{position:absolute;left:16px;right:16px;bottom:96px;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:14px 16px;border-radius:var(--r);box-shadow:var(--e3);opacity:0;pointer-events:none;transform:translateY(16px);transition:all .3s cubic-bezier(.2,0,0,1);z-index:90;}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  .legend{max-width:300px;font-size:12px;color:var(--muted);line-height:1.7;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;}
+  .legend h3{font-size:15px;color:var(--ink);margin-bottom:10px;font-weight:700;} .legend b{color:var(--accent);}
+  @media(max-width:1300px){.legend{display:none;}}
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v8a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-recipe" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="i-ai" viewBox="0 0 24 24"><path d="M12 3l1.7 5L19 9.7l-5.3 1.7L12 17l-1.7-5.6L5 9.7 10.3 8z"/></symbol>
+    <symbol id="i-insights" viewBox="0 0 24 24"><path d="M5 20v-6M12 20V6M19 20v-9M4 20h16"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 21a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></symbol>
+    <symbol id="i-chevR" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-chevD" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.4a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.24 1z"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c.5 3 3.5 4 3.5 7.5a3.5 3.5 0 0 1-7 0c0-1.2.5-2 1-2.8.3 1 1 1.3 1 1.3C10.5 6 11 4.2 12 3z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"/><path d="M20 20l-3.5-3.5"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></symbol>
+    <symbol id="i-ban" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M6 6l12 12"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><path d="M6 11h12v9H6z"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3M12 17h.01"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2M18 4v5h-5M6 20v-5h5"/></symbol>
+    <symbol id="i-cook" viewBox="0 0 24 24"><path d="M7 9a5 5 0 0 1 10 0"/><path d="M4 9h16M6 9v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3v-3H6a2 2 0 0 1-2-2z"/><path d="M8.5 10h.01M12 10h.01M15.5 10h.01"/></symbol>
+  </defs></svg>
+
+  <div class="head">
+    <h1>Food Coach<span class="dot">.</span> AI 营养教练</h1>
+    <p>成熟化重做（Airbnb / Google 设计语言）：首页铺开今日计划 + 进度 · 线性 SVG 图标 · 克制深绿 + 中性留白 · 清晰字阶。</p>
+  </div>
+
+  <div class="stage">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar" id="sbar"><span>9:41</span><span class="r">●●● ●</span></div>
+
+      <!-- ===== HOME = 今日计划(铺开) + 进度 + 科普 ===== -->
+      <section class="screen active" id="home">
+        <div class="topbar">
+          <div class="hi"><span>12月15日 · 周三</span><b>早上好</b></div>
+          <div class="ib"><svg class="ic"><use href="#i-bell"/></svg><span class="badge"></span></div>
+          <div class="ava" onclick="navTo('profile')">🧑</div>
+        </div>
+        <div class="body">
+          <!-- progress snapshot (merged) -->
+          <div class="card ov">
+            <div class="ov-top">
+              <div class="ov-l"><span class="lab">今日摄入</span><div class="num"><b id="nEaten">0</b><span>/ <span id="goalKcal">1,480</span> kcal</span></div></div>
+              <div class="ring" id="ovRing"><span id="ovPct">0%</span></div>
+            </div>
+            <div class="mac">
+              <div class="m"><div class="mt">碳水</div><b><span id="mCarb">0</span> / <span id="tCarb">172</span> g</b></div>
+              <div class="m"><div class="mt">蛋白</div><b><span id="mPro">0</span> / <span id="tPro">90</span> g</b></div>
+              <div class="m"><div class="mt">脂肪</div><b><span id="mFat">0</span> / <span id="tFat">42</span> g</b></div>
+            </div>
+            <div class="foot"><svg class="ic"><use href="#i-flame"/></svg>连续记录 4 天<span class="sp"></span><a onclick="navTo('insights')">查看进度</a></div>
+          </div>
+
+          <div class="sec"><div class="planhd"><h3>今日计划</h3><span class="chip" id="planChip">AI 推荐</span></div></div>
+          <div class="card plan" id="planCard"><div id="planList"></div><div class="plan-foot" id="planFoot"></div></div>
+
+          <div class="sec"><h3>健康饮食科普</h3><a onclick="navTo('recipes')">更多 <svg class="ic"><use href="#i-chevR"/></svg></a></div>
+          <div class="card feed" onclick="openCopilotAsk('为什么晚餐要吃得清淡一点？')"><div class="ph">🌙</div><div class="fi"><b>为什么晚餐要吃得清淡？</b><span>作息 · 2 分钟 · 晚间代谢</span></div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+          <div class="card feed" onclick="openCopilotAsk('用大白话解释一下 GI 升糖指数')"><div class="ph">📈</div><div class="fi"><b>3 分钟搞懂 GI（升糖指数）</b><span>知识 · 3 分钟 · 主食怎么选</span></div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+          <div class="card feed" onclick="openCopilotAsk('我每天到底该吃多少蛋白质？')"><div class="ph">💪</div><div class="fi"><b>蛋白质每天该吃多少？</b><span>营养 · 2 分钟 · 按体重估算</span></div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+          <div class="safety">内容由 AI 整理 · 不构成医疗建议</div>
+        </div>
+        <div class="nav">
+          <a class="on" onclick="navTo('home')"><svg class="ic"><use href="#i-home"/></svg>首页</a>
+          <a onclick="navTo('recipes')"><svg class="ic"><use href="#i-recipe"/></svg>食谱</a>
+          <div class="center"><div class="cop" onclick="openCopilot()"><svg class="ic"><use href="#i-chat"/></svg></div><span>AI 助手</span></div>
+          <a onclick="navTo('insights')"><svg class="ic"><use href="#i-insights"/></svg>进度</a>
+          <a onclick="navTo('profile')"><svg class="ic"><use href="#i-user"/></svg>我的</a>
+        </div>
+      </section>
+
+      <!-- ===== INSIGHTS ===== -->
+      <section class="screen" id="insights">
+        <div class="ptitle">进度</div>
+        <div class="psub">开局不错，本周三餐更规律了。</div>
+        <div class="body">
+          <div class="card pcard">
+            <h4>总进度</h4>
+            <div class="pbar"><i style="width:40%"></i><div class="tag" style="left:40%">40%</div><div class="knob" style="left:40%"></div></div>
+            <p>均衡饮食带来更稳定的精力与专注，目标完成度已达 40%。</p>
+          </div>
+          <div class="twocol">
+            <div class="card pcell"><div class="ph"><svg class="ic"><use href="#i-flame"/></svg>本周日均</div><div class="big">1,460<small>kcal</small></div></div>
+            <div class="card pcell"><div class="ph"><svg class="ic"><use href="#i-check"/></svg>达标天数</div><div class="big">5<small>/ 7 天</small></div></div>
+          </div>
+          <div class="card streakrow"><svg class="ic"><use href="#i-flame"/></svg><div><b>连续 4 天</b><span>坚持住，别断！</span></div></div>
+          <div class="card chartcard">
+            <h4>本周摄入趋势</h4>
+            <div class="bars">
+              <div class="bcol"><div class="bk" style="height:50px"></div><span>一</span></div>
+              <div class="bcol"><div class="bk" style="height:72px"></div><span>二</span></div>
+              <div class="bcol on"><div class="bk" style="height:84px"></div><span>三</span></div>
+              <div class="bcol"><div class="bk" style="height:40px"></div><span>四</span></div>
+              <div class="bcol"><div class="bk" style="height:60px"></div><span>五</span></div>
+              <div class="bcol"><div class="bk" style="height:30px"></div><span>六</span></div>
+              <div class="bcol"><div class="bk" style="height:46px"></div><span>日</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <a onclick="navTo('home')"><svg class="ic"><use href="#i-home"/></svg>首页</a>
+          <a onclick="navTo('recipes')"><svg class="ic"><use href="#i-recipe"/></svg>食谱</a>
+          <div class="center"><div class="cop" onclick="openCopilot()"><svg class="ic"><use href="#i-chat"/></svg></div><span>AI 助手</span></div>
+          <a class="on" onclick="navTo('insights')"><svg class="ic"><use href="#i-insights"/></svg>进度</a>
+          <a onclick="navTo('profile')"><svg class="ic"><use href="#i-user"/></svg>我的</a>
+        </div>
+      </section>
+
+      <!-- ===== RECIPES ===== -->
+      <section class="screen" id="recipes">
+        <div class="ptitle">食谱库</div>
+        <div class="body">
+          <div class="card search"><svg class="ic"><use href="#i-search"/></svg>搜索菜名、食材…</div>
+          <div class="cats"><div class="cat on">全部</div><div class="cat">快手</div><div class="cat">低卡</div><div class="cat">高蛋白</div><div class="cat">素食</div></div>
+          <div class="rgrid">
+            <div class="card rcard" onclick="openDetail('l')"><div class="rimg">🥗</div><div class="ri"><b>香煎鸡胸藜麦碗</b><span>560 kcal · 10 分钟</span></div></div>
+            <div class="card rcard" onclick="openDetail('d')"><div class="rimg">🍲</div><div class="ri"><b>番茄豆腐蔬菜汤</b><span>540 kcal · 10 分钟</span></div></div>
+            <div class="card rcard" onclick="openDetail('b')"><div class="rimg">🍳</div><div class="ri"><b>鸡蛋全麦吐司</b><span>380 kcal · 5 分钟</span></div></div>
+            <div class="card rcard" onclick="openDetail('r1')"><div class="rimg">🥪</div><div class="ri"><b>牛油果鸡蛋三明治</b><span>420 kcal · 8 分钟</span></div></div>
+            <div class="card rcard" onclick="openDetail('r2')"><div class="rimg">🍜</div><div class="ri"><b>味噌时蔬荞麦面</b><span>480 kcal · 12 分钟</span></div></div>
+            <div class="card rcard" onclick="openDetail('r3')"><div class="rimg">🫘</div><div class="ri"><b>鹰嘴豆烤蔬菜碗</b><span>500 kcal · 10 分钟</span></div></div>
+          </div>
+        </div>
+        <div class="nav">
+          <a onclick="navTo('home')"><svg class="ic"><use href="#i-home"/></svg>首页</a>
+          <a class="on" onclick="navTo('recipes')"><svg class="ic"><use href="#i-recipe"/></svg>食谱</a>
+          <div class="center"><div class="cop" onclick="openCopilot()"><svg class="ic"><use href="#i-chat"/></svg></div><span>AI 助手</span></div>
+          <a onclick="navTo('insights')"><svg class="ic"><use href="#i-insights"/></svg>进度</a>
+          <a onclick="navTo('profile')"><svg class="ic"><use href="#i-user"/></svg>我的</a>
+        </div>
+      </section>
+
+      <!-- ===== DETAIL ===== -->
+      <section class="screen" id="detail">
+        <div class="dt-hero"><div class="row"><div class="dt-circle" onclick="navBack()"><svg class="ic"><use href="#i-back"/></svg></div><div class="dt-circle" onclick="toast('已收藏')"><svg class="ic"><use href="#i-heart"/></svg></div></div><div class="dt-img" id="dtImg">🥗</div></div>
+        <div class="body" style="padding-top:0;">
+          <div class="dt-body" style="padding:20px 0;">
+            <span class="kit"><svg class="ic" style="width:15px;height:15px"><use href="#i-box"/></svg> 材料包已送达</span>
+            <h2 id="dtTitle">香煎鸡胸藜麦碗</h2>
+            <div class="dt-macros"><div><b id="dtCal">560</b><span>kcal</span></div><div><b id="dtCarb">55 g</b><span>碳水</span></div><div><b id="dtProtein">45 g</b><span>蛋白</span></div><div><b id="dtFat">16 g</b><span>脂肪</span></div></div>
+            <div class="dt-actions">
+              <button class="btn btn-dark" onclick="openCooking()"><svg class="ic" style="width:18px;height:18px"><use href="#i-cook"/></svg> AI 视频教我做</button>
+              <button class="btn btn-accent" id="dtAdd">加入今日计划</button>
+            </div>
+            <div class="dt-why"><div class="wl">为什么推荐给你</div><p id="dtWhy">中午时间紧，这份省事又扛饿。</p><div class="src" id="dtSrc">依据：优质蛋白 + 全谷物搭配</div></div>
+            <div class="nf"><h4>营养成分</h4>
+              <div class="r"><span>热量</span><b id="dtCal2">560 kcal</b></div>
+              <div class="r"><span>蛋白质</span><b id="dtNfP">45 g</b></div><div class="r"><span>碳水化合物</span><b id="dtNfC">55 g</b></div>
+              <div class="r"><span>膳食纤维</span><b>9 g</b></div><div class="r"><span>脂肪</span><b id="dtNfF">16 g</b></div><div class="r"><span>钠</span><b>480 mg</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== COOKING CALL ===== -->
+      <section class="screen" id="cooking">
+        <div class="call-top">
+          <div class="mini" onclick="navBack()"><svg class="ic"><use href="#i-chevD"/></svg></div>
+          <div class="ti"><b id="cookTitle">香煎鸡胸藜麦碗</b><span class="live"><i></i>AI 教练 · 通话中 <span id="cookTimer">00:00</span></span></div>
+          <div class="mini" onclick="toast('翻转摄像头')"><svg class="ic"><use href="#i-refresh"/></svg></div>
+        </div>
+        <div class="coach">
+          <div class="selfpip">🧑</div>
+          <div class="spk">👩‍🍳</div>
+          <div class="nm">AI 营养教练</div>
+          <div class="wave"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="cap" id="cookCap">准备好了我们就开始啦，把材料包拆开摆在手边～</div>
+        </div>
+        <div class="stepsheet">
+          <div class="sh"><span class="sn" id="cookStepNo">第 1 步 / 共 4 步</span><div class="stepbar" id="cookBar"></div></div>
+          <h4 id="cookStepT">备料</h4>
+          <p id="cookStepD">把材料包里的食材洗净、按提示切好，摆在手边。</p>
+        </div>
+        <div class="callctrl">
+          <button class="cbtn" onclick="toast('已静音')"><svg class="ic"><use href="#i-mic"/></svg></button>
+          <button class="next" id="cookNext" onclick="cookNext()">下一步</button>
+          <button class="cbtn end" onclick="cookEnd()"><svg class="ic"><use href="#i-phone"/></svg></button>
+        </div>
+      </section>
+
+      <!-- ===== CO-PILOT ===== -->
+      <section class="screen" id="copilot">
+        <div class="cop-head"><div class="mk"><svg class="ic"><use href="#i-ai"/></svg></div><div class="ti"><b>AI 营养教练</b><span>随时帮你生成、调整、记录、答疑</span></div><button class="x" onclick="navBack()"><svg class="ic"><use href="#i-close"/></svg></button></div>
+        <div class="chatwrap" id="chat"><div class="bub ai">你好，我是你的营养教练。今天想让我帮你做点什么？</div></div>
+        <div class="cop-sug">
+          <div class="s" onclick="cpSend('重新生成今天的计划')">重新生成计划</div>
+          <div class="s" onclick="cpSend('把午餐换成不辣的')">换一餐</div>
+          <div class="s" onclick="openCamera()">拍照记一笔</div>
+          <div class="s" onclick="cpSend('我这样吃健康吗')">问问营养</div>
+        </div>
+        <div class="composer"><button class="cam" onclick="openCamera()"><svg class="ic"><use href="#i-camera"/></svg></button><div class="box"><input id="cpInput" placeholder="问我任何关于吃的…" onkeydown="if(event.key==='Enter')cpSend(this.value)"><button class="snd" onclick="cpSend(document.getElementById('cpInput').value)"><svg class="ic" style="width:19px;height:19px"><use href="#i-send"/></svg></button></div></div>
+      </section>
+
+      <!-- ===== CAMERA ===== -->
+      <section class="screen" id="camera">
+        <div class="cam-top"><div class="cc" onclick="navBack()"><svg class="ic"><use href="#i-back"/></svg></div><div class="cc" onclick="toast('闪光灯')">⚡</div></div>
+        <div class="viewfinder"><div class="fr"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div><div class="food">🍱</div></div>
+        <div class="cam-hint">把食物放进框内，AI 自动识别并估算热量</div>
+        <div class="cam-ctrl"><div class="side"><svg class="ic"><use href="#i-recipe"/></svg></div><div class="shutter" onclick="capture()"></div><div class="side"><svg class="ic"><use href="#i-search"/></svg></div></div>
+        <div class="cam-result" id="camResult"><div class="ph">🍱</div><div class="ci"><b>识别：日式便当</b><span>约 620 kcal · 置信度 92%</span></div><button onclick="toast('已记入午餐');navTo('home')">记一笔</button></div>
+      </section>
+
+      <!-- ===== PROFILE ===== -->
+      <section class="screen" id="profile">
+        <div class="ptitle">我的</div>
+        <div class="body">
+          <div class="prof-head"><div class="av">🧑</div><b>欢迎回来</b><span>健康饮食 · 第 28 天</span></div>
+          <div class="card prof-stats"><div><b>4</b><span>连续天数</span></div><div><b>28</b><span>已记录</span></div><div><b>40%</b><span>目标达成</span></div></div>
+          <div class="card plist">
+            <div class="row" onclick="go('q1')"><div class="lic"><svg class="ic"><use href="#i-target"/></svg></div><div class="rt">我的目标</div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+            <div class="row" onclick="go('q2')"><div class="lic"><svg class="ic"><use href="#i-ban"/></svg></div><div class="rt">口味与忌口</div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+            <div class="row" onclick="toast('材料包订单 · 原型未展开')"><div class="lic"><svg class="ic"><use href="#i-box"/></svg></div><div class="rt">材料包订单</div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+            <div class="row" onclick="toast('用餐提醒 · 原型未展开')"><div class="lic"><svg class="ic"><use href="#i-clock"/></svg></div><div class="rt">用餐提醒</div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+            <div class="row" onclick="toast('账号与隐私 · 原型未展开')"><div class="lic"><svg class="ic"><use href="#i-lock"/></svg></div><div class="rt">账号与隐私</div><svg class="ic cv"><use href="#i-chevR"/></svg></div>
+          </div>
+          <div class="safety">本内容不构成医疗建议 · v1.0</div>
+        </div>
+        <div class="nav">
+          <a onclick="navTo('home')"><svg class="ic"><use href="#i-home"/></svg>首页</a>
+          <a onclick="navTo('recipes')"><svg class="ic"><use href="#i-recipe"/></svg>食谱</a>
+          <div class="center"><div class="cop" onclick="openCopilot()"><svg class="ic"><use href="#i-chat"/></svg></div><span>AI 助手</span></div>
+          <a onclick="navTo('insights')"><svg class="ic"><use href="#i-insights"/></svg>进度</a>
+          <a class="on" onclick="navTo('profile')"><svg class="ic"><use href="#i-user"/></svg>我的</a>
+        </div>
+      </section>
+
+      <!-- ===== Q1/Q2/Q3 ===== -->
+      <section class="screen" id="q1">
+        <div class="qhead"><button class="iconbtn" onclick="navBack()"><svg class="ic"><use href="#i-back"/></svg></button><div class="dots"><i class="on"></i><i></i><i></i></div><div class="grow"></div><button class="skip" onclick="navBack()">跳过</button></div>
+        <div class="qbody"><div class="kicker">可选 · 1 / 3</div><h2 class="title">你最想达成什么？</h2><p class="sub">随时能改，也可以直接跳过先用。</p>
+          <div class="chips" data-single>
+            <div class="chip" onclick="pick(this,'goal','均衡饮食')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🥗 吃得更均衡</div>
+            <div class="chip" onclick="pick(this,'goal','规律三餐')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>⏰ 规律三餐</div>
+            <div class="chip" onclick="pick(this,'goal','少点外卖')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🍱 少点外卖</div>
+            <div class="chip" onclick="pick(this,'goal','慢慢减脂')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🏃 慢慢减脂</div>
+          </div>
+        </div>
+        <div class="footbar"><button class="btn btn-accent" id="b-q1" disabled onclick="go('q2')">下一步</button></div>
+      </section>
+      <section class="screen" id="q2">
+        <div class="qhead"><button class="iconbtn" onclick="go('q1')"><svg class="ic"><use href="#i-back"/></svg></button><div class="dots"><i class="on"></i><i class="on"></i><i></i></div><div class="grow"></div><button class="skip" onclick="navBack()">跳过</button></div>
+        <div class="qbody"><div class="kicker">可选 · 2 / 3</div><h2 class="title">有什么不吃的吗？</h2><p class="sub">可多选，我们会确保计划里绝不出现。</p>
+          <div class="chips">
+            <div class="chip" onclick="pickMulti(this,'avoid','香菜')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🌿 香菜</div>
+            <div class="chip" onclick="pickMulti(this,'avoid','牛羊肉')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🥩 牛羊肉</div>
+            <div class="chip" onclick="pickMulti(this,'avoid','海鲜')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🦐 海鲜</div>
+            <div class="chip" onclick="pickMulti(this,'avoid','乳制品')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🥛 乳制品</div>
+            <div class="chip" onclick="pickMulti(this,'avoid','辣')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🌶️ 不吃辣</div>
+          </div>
+        </div>
+        <div class="footbar"><button class="btn btn-accent" onclick="go('q3')">下一步</button></div>
+      </section>
+      <section class="screen" id="q3">
+        <div class="qhead"><button class="iconbtn" onclick="go('q2')"><svg class="ic"><use href="#i-back"/></svg></button><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="grow"></div><button class="skip" onclick="navBack()">跳过</button></div>
+        <div class="qbody"><div class="kicker">可选 · 3 / 3</div><h2 class="title">愿意自己做饭吗？</h2>
+          <div class="chips" data-single>
+            <div class="chip" onclick="pick(this,'cook','基本不做')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>😅 基本不做</div>
+            <div class="chip" onclick="pick(this,'cook','简单的可以')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>🍳 简单的可以</div>
+            <div class="chip" onclick="pick(this,'cook','我爱做饭')"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span>👩‍🍳 我爱做饭</div>
+          </div>
+          <div class="field"><label>再用一句话说说你的生活（可选）</label><textarea placeholder="例：一个人住，平时很忙，三餐基本靠外卖…">一个人住，平时很忙，三餐基本靠外卖</textarea></div>
+        </div>
+        <div class="footbar"><button class="btn btn-accent" id="b-q3" disabled onclick="generate()">生成我的专属计划</button></div>
+      </section>
+      <section class="screen" id="loading"><div class="lwrap"><div class="spinner"></div><div><h3>正在为你定制…</h3><p class="lstep" id="lstep">读懂你的生活节奏</p></div></div></section>
+
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <div class="legend">
+      <h3>本次成熟化重做</h3>
+      <p>• <b>首页合并</b>：今日计划直接铺开 + 进度概览（热量/宏量/连续天数）+ 科普，单页搞定；删「计划」tab，深度趋势进「进度」<br>
+      • <b>SVG 线性图标</b>替换所有 emoji 功能图标（导航/按钮/勾选/操作）<br>
+      • <b>克制配色</b>：深绿 #1A7D4B 作唯一强调，中性白卡 + 大留白，去掉亮柠檬大色块<br>
+      • <b>字阶与圆角</b>：Inter 清晰层级、卡片 16 / 按钮 12，去幼态<br><br>
+      首页即可采用计划、打勾、做菜、看进度、读科普。</p>
+    </div>
+  </div>
+
+<script>
+  const state={goal:null,avoid:[],cook:null};
+  const GOAL=1480; let eatenCal=0; let adopted=false;
+  const meals=[
+    {id:'b',tag:'早餐',when:'约 8:00',name:'鸡蛋 + 全麦吐司 + 蓝莓',cal:380,carb:45,protein:20,fat:12,meta:'5 分钟 · 在家做',em:'🍳',done:false,removed:false,
+     why:'管饱又不容易犯困——上午要上班，别让自己十点就饿。蓝莓顺手抓一把，不用洗切。',src:'依据：中国居民膳食指南 · 早餐供能'},
+    {id:'l',tag:'午餐',when:'约 12:30',name:'香煎鸡胸藜麦碗',cal:560,carb:55,protein:45,fat:16,meta:'10 分钟 · 可点外卖',em:'🥗',done:false,removed:false,
+     why:'中午时间紧，这份省事又扛饿；不想做的话，外卖搜「藜麦鸡胸碗」也能一键复刻。',src:'依据：优质蛋白 + 全谷物搭配'},
+    {id:'d',tag:'晚餐',when:'约 19:00',name:'番茄豆腐蔬菜汤 + 糙米饭',cal:540,carb:72,protein:25,fat:14,meta:'10 分钟 · 一锅搞定',em:'🍲',done:false,removed:false,
+     why:'晚上吃轻一点，独居一人也好做。糙米比白米更扛饿，不容易半夜嘴馋点炸鸡。',src:'依据：晚间低负担 · 全谷物替换'}
+  ];
+  const recipes=[
+    {id:'r1',name:'牛油果鸡蛋三明治',cal:420,carb:40,protein:18,fat:20,em:'🥪',tag:'早餐',why:'牛油果提供好脂肪 + 鸡蛋优质蛋白，做起来快，适合赶时间的早晨。',src:'依据：优质蛋白 + 健康脂肪'},
+    {id:'r2',name:'味噌时蔬荞麦面',cal:480,carb:78,protein:16,fat:10,em:'🍜',tag:'午餐',why:'荞麦升糖慢、扛饿，味噌时蔬清淡少负担，适合工作日午餐。',src:'依据：全谷物 + 低负担'},
+    {id:'r3',name:'鹰嘴豆烤蔬菜碗',cal:500,carb:60,protein:20,fat:16,em:'🫘',tag:'午餐',why:'植物蛋白的鹰嘴豆配烤蔬菜，膳食纤维高，素食也扛饿。',src:'依据：植物蛋白 + 膳食纤维'}
+  ];
+  function foodById(key){ return meals.find(x=>x.id===key) || recipes.find(x=>x.id===key); }
+
+  let navHist=['home']; const DARK=['cooking','camera'];
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('sbar').classList.toggle('lt',DARK.includes(id));
+    document.querySelector('#'+id+' .body, #'+id+' .qbody, #'+id+' .chatwrap')?.scrollTo(0,0);
+  }
+  function navTo(id){ navHist=[id]; showScreen(id); }
+  function go(id){ if(navHist[navHist.length-1]!==id)navHist.push(id); showScreen(id); }
+  function navBack(){ navHist.pop(); showScreen(navHist[navHist.length-1]||'home'); }
+  function openCopilot(){ go('copilot'); }
+  function openCopilotAsk(q){ go('copilot'); setTimeout(()=>cpSend(q),260); }
+  function openCamera(){ document.getElementById('camResult').classList.remove('show'); go('camera'); }
+
+  function pick(el,key,val){
+    const box=el.parentElement;box.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');state[key]=val;
+    if(key==='goal')document.getElementById('b-q1').disabled=false;
+    if(key==='cook')document.getElementById('b-q3').disabled=false;
+  }
+  function pickMulti(el,key,val){el.classList.toggle('sel');const i=state[key].indexOf(val);if(i>-1)state[key].splice(i,1);else state[key].push(val);}
+  const lsteps=['读懂你的生活节奏…','匹配适合你的食物…','核对营养与忌口…','写好「为什么」…'];
+  function generate(){
+    go('loading');let i=0;const el=document.getElementById('lstep');
+    const t=setInterval(()=>{i++;if(i<lsteps.length){el.style.opacity=0;setTimeout(()=>{el.textContent=lsteps[i];el.style.opacity=1;},200);}},620);
+    setTimeout(()=>{clearInterval(t);adopted=false;meals.forEach(m=>{m.done=false;m.removed=false;});renderPlan();navTo('home');toast(personalizeMsg());},2600);
+  }
+  function personalizeMsg(){let s='已为你生成新计划：';s+= state.cook==='基本不做'?'都挑了买得到、点得到的省事款':'搭配都控制在 10 分钟内';if(state.avoid.length)s+='，并避开了「'+state.avoid.join('、')+'」';return s+'。点「采用今日计划」开始';}
+
+  function renderPlan(){
+    const wrap=document.getElementById('planList');wrap.innerHTML='';
+    meals.forEach(m=>{
+      if(m.removed)return;
+      const b=document.createElement('div');b.className='mblock';b.id='mb-'+m.id;
+      b.innerHTML=`<div class="mrow">
+          <div class="ph" onclick="openDetail('${m.id}')">${m.em}</div>
+          <div class="mi" onclick="openDetail('${m.id}')"><div class="tag">${m.tag} · ${m.when}</div><b>${m.name}</b><small>${m.meta}</small></div>
+          <div class="rt">${m.cal}<small>kcal</small></div>
+          <button class="cbx${m.done?' done':''}" id="cbx-${m.id}" onclick="markEaten('${m.id}')"><svg class="ic"><use href="#i-check"/></svg></button>
+        </div>
+        <div class="mact">
+          <button class="cook" onclick="openCooking('${m.id}')"><svg class="ic"><use href="#i-cook"/></svg>做菜</button>
+          <button class="why" id="wl-${m.id}" onclick="toggleWhy('${m.id}')">为什么 <svg class="ic"><use href="#i-chevD"/></svg></button>
+        </div>
+        <div class="whyinline" id="why-${m.id}"><div class="in"><p>${m.why}</p><div class="src">${m.src}</div></div></div>`;
+      wrap.appendChild(b);
+    });
+    document.getElementById('planCard').classList.toggle('adopted',adopted);
+    const chip=document.getElementById('planChip');chip.textContent=adopted?'进行中':'AI 推荐';chip.classList.toggle('live',adopted);
+    updateFoot();updateNutri();
+  }
+  function updateFoot(){
+    const foot=document.getElementById('planFoot');
+    if(!adopted){foot.innerHTML=`<button class="btn btn-accent" onclick="adoptPlan()">采用今日计划</button><div class="foot-alt" onclick="openCopilot()">不满意？<b>让 AI 重新生成</b></div>`;}
+    else{const tot=meals.filter(m=>!m.removed).length,done=meals.filter(m=>!m.removed&&m.done).length;
+      foot.innerHTML=`<div class="foot-prog"><div class="pb"><i style="width:${tot?done/tot*100:0}%"></i></div><div class="lab">已吃 ${done}/${tot}</div></div>`;}
+  }
+  function adoptPlan(){adopted=true;renderPlan();toast('今日计划已采用，吃完记得打勾');}
+  function markEaten(id){
+    if(!adopted)return;const m=meals.find(x=>x.id===id);if(!m||m.done)return;
+    m.done=true;
+    document.getElementById('cbx-'+id).classList.add('done');
+    updateFoot();updateNutri();
+    const allDone=meals.filter(x=>!x.removed).every(x=>x.done);
+    toast(allDone?'今天都吃完啦，太棒了 🎉':'记下啦，继续保持');
+  }
+  function updateNutri(){
+    let goal=0,gc=0,gp=0,gf=0,ec=0,ep=0,ef=0;eatenCal=0;
+    meals.forEach(m=>{if(m.removed)return;goal+=m.cal;gc+=m.carb;gp+=m.protein;gf+=m.fat;if(m.done){eatenCal+=m.cal;ec+=m.carb;ep+=m.protein;ef+=m.fat;}});
+    const p=goal?Math.min(Math.round(eatenCal/goal*100),100):0;
+    document.getElementById('nEaten').textContent=eatenCal.toLocaleString();
+    document.getElementById('goalKcal').textContent=goal.toLocaleString();
+    document.getElementById('mCarb').textContent=ec;document.getElementById('tCarb').textContent=gc;
+    document.getElementById('mPro').textContent=ep;document.getElementById('tPro').textContent=gp;
+    document.getElementById('mFat').textContent=ef;document.getElementById('tFat').textContent=gf;
+    const r=document.getElementById('ovRing');if(r)r.style.setProperty('--p',p+'%');
+    const pc=document.getElementById('ovPct');if(pc)pc.textContent=p+'%';
+  }
+  function toggleWhy(id){document.getElementById('why-'+id).classList.toggle('open');document.getElementById('wl-'+id).classList.toggle('open');}
+
+  let detailKey='l';
+  function openDetail(key){
+    const m=foodById(key);if(!m)return;detailKey=key;
+    document.getElementById('dtImg').textContent=m.em;
+    document.getElementById('dtTitle').textContent=m.name;
+    document.getElementById('dtCal').textContent=m.cal;document.getElementById('dtCal2').textContent=m.cal+' kcal';
+    document.getElementById('dtCarb').textContent=m.carb+' g';document.getElementById('dtNfC').textContent=m.carb+' g';
+    document.getElementById('dtProtein').textContent=m.protein+' g';document.getElementById('dtNfP').textContent=m.protein+' g';
+    document.getElementById('dtFat').textContent=m.fat+' g';document.getElementById('dtNfF').textContent=m.fat+' g';
+    document.getElementById('dtWhy').textContent=m.why;document.getElementById('dtSrc').textContent='依据：'+m.src.replace(/^依据：/,'');
+    const inPlan=meals.some(x=>x.id===key&&!x.removed);const btn=document.getElementById('dtAdd');
+    if(inPlan){btn.textContent='换一餐';btn.onclick=()=>openCopilot();}
+    else{btn.textContent='加入今日计划';btn.onclick=()=>{toast('已加入今日计划');navBack();};}
+    go('detail');
+  }
+  function capture(){document.getElementById('camResult').classList.add('show');}
+
+  /* cooking */
+  let cookSteps=[],cookIdx=0,cookTimerId=null,cookSecs=0;
+  function buildSteps(){return [
+    {t:'备料',d:'把材料包里的食材洗净，按提示切好，摆在手边。',cap:'材料包都拆开了吗？我陪你一步步来，别紧张。'},
+    {t:'热锅下油',d:'中火热锅，倒一点点油，出现油纹就可以了。',cap:'锅微微冒烟、油纹出现就够热啦，油别太多。'},
+    {t:'下锅烹饪',d:'放入主料，先别急着翻动，让它定型再翻面。',cap:'滋啦——放进去！先别翻，等它定型，大约 2 分钟。'},
+    {t:'调味装盘',d:'尝一下咸淡，加盐调味，盛出装盘，完成！',cap:'闻到香味了吧？尝个咸淡，装盘——你做到了！'}
+  ];}
+  function openCooking(key){
+    const f=foodById(key||detailKey)||foodById('l');
+    document.getElementById('cookTitle').textContent=f.name;
+    cookSteps=buildSteps();cookIdx=0;cookSecs=0;renderCookStep();startCookTimer();go('cooking');
+  }
+  function renderCookStep(){
+    const s=cookSteps[cookIdx];
+    document.getElementById('cookStepNo').textContent=`第 ${cookIdx+1} 步 / 共 ${cookSteps.length} 步`;
+    document.getElementById('cookStepT').textContent=s.t;document.getElementById('cookStepD').textContent=s.d;document.getElementById('cookCap').textContent=s.cap;
+    const bar=document.getElementById('cookBar');bar.innerHTML='';cookSteps.forEach((_,i)=>{const x=document.createElement('i');if(i<=cookIdx)x.className='on';bar.appendChild(x);});
+    document.getElementById('cookNext').textContent= cookIdx>=cookSteps.length-1 ? '完成' : '下一步';
+  }
+  function cookNext(){ if(cookIdx>=cookSteps.length-1){cookEnd(true);return;} cookIdx++;renderCookStep(); }
+  function startCookTimer(){ clearInterval(cookTimerId);cookTimerId=setInterval(()=>{cookSecs++;const m=String(Math.floor(cookSecs/60)).padStart(2,'0'),s=String(cookSecs%60).padStart(2,'0');document.getElementById('cookTimer').textContent=m+':'+s;},1000); }
+  function cookEnd(done){ clearInterval(cookTimerId);navTo('home');toast(done?'做好啦！这一餐已自动记录 👏':'已结束本次教学'); }
+
+  /* co-pilot */
+  function cpBubble(cls,html){const c=document.getElementById('chat');const d=document.createElement('div');d.className='bub '+cls;d.innerHTML=html;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+  function cpSend(text){if(!text||!text.trim())return;document.getElementById('cpInput').value='';const t=text.trim();cpBubble('me',t);setTimeout(()=>handleIntent(t),420);}
+  function handleIntent(t){
+    if(t.includes('生成')||t.includes('计划')||t.includes('今天吃')){cpBubble('ai','好的，正在按你的情况重新生成今天的计划…');
+      setTimeout(()=>{adopted=false;meals.forEach(m=>{m.done=false;m.removed=false;});renderPlan();cpBubble('ai','新计划好了！<b>已回到首页，点采用即可开始。</b>');setTimeout(()=>navTo('home'),800);},1100);}
+    else if(t.includes('肉')||t.includes('不辣')||t.includes('辣')){applyAdjust('l_meat');cpBubble('ai','已把<b>午餐</b>换成清淡少肉的鹰嘴豆烤蔬菜碗，回首页就能看到。');setTimeout(()=>navTo('home'),900);}
+    else if(t.includes('早餐')||t.includes('不吃早')){applyAdjust('skip_b');cpBubble('ai','好的，已把早餐从今天的计划里去掉，并把蛋白挪到午餐。');setTimeout(()=>navTo('home'),900);}
+    else if(t.includes('简单')||t.includes('省事')||t.includes('快')){applyAdjust('simple');cpBubble('ai','都换成 5 分钟内能搞定的版本了。');setTimeout(()=>navTo('home'),900);}
+    else if(t.includes('拍')||t.includes('记一笔')||t.includes('记录')){cpBubble('ai','好的，帮你打开相机，对准食物即可识别。');setTimeout(()=>openCamera(),700);}
+    else if(t.includes('GI')||t.includes('升糖')){cpBubble('ai','<b>GI（升糖指数）</b>说的是吃完后血糖升得快不快。白米饭、白面包升得快，容易很快又饿；糙米、燕麦、全麦升得慢，更扛饿、更稳。<b>挑「慢」的主食，下午就不容易犯困和嘴馋。</b>');}
+    else if(t.includes('蛋白')){cpBubble('ai','一般人每天大约每公斤体重 <b>1~1.2g 蛋白质</b>。比如 60kg 约 70~75g，相当于一个鸡蛋 + 一份鸡胸 + 一杯酸奶 + 豆制品就差不多。');}
+    else if(t.includes('晚餐')||t.includes('清淡')){cpBubble('ai','晚上活动少、代谢慢，吃太油太饱会影响睡眠也容易囤积。<b>晚餐七分饱、少油、多蔬菜 + 优质蛋白</b>最舒服，主食换成糙米/杂粮更好。');}
+    else if(t.includes('外卖')){cpBubble('ai','点外卖 5 个小技巧：① 备注少油少盐；② 多一份蔬菜；③ 主食选杂粮/少量；④ 避开油炸和勾芡；⑤ 汤汁别全拌饭。');}
+    else if(t.includes('健康')||t.includes('怎么样')||t.includes('好不好')){cpBubble('ai','你今天搭配蛋白和蔬菜都够，热量也在目标区间内，整体挺均衡。建议晚餐别太晚。<br><span style="font-size:11px;color:#AEAEB2">· 不构成医疗建议</span>');}
+    else{cpBubble('ai','收到～我可以帮你「重新生成计划」「换某一餐」「拍照记录」或回答营养问题，试试下面的快捷选项？');}
+  }
+  function applyAdjust(kind){
+    if(kind==='l_meat'){const l=meals.find(m=>m.id==='l');l.name='鹰嘴豆烤蔬菜碗';l.em='🫘';l.cal=500;l.meta='10 分钟 · 可点外卖';l.why='换成植物蛋白的鹰嘴豆，照样扛饿，蛋白够，热量更低。';}
+    else if(kind==='skip_b'){const m=meals.find(x=>x.id==='b');m.done=false;m.removed=true;}
+    else if(kind==='simple'){meals.forEach(m=>{m.meta=m.meta.replace(/\d+ 分钟/,'5 分钟');});}
+    renderPlan();
+  }
+  let toastT;
+  function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
+  renderPlan();
+</script>
+</body>
+</html>
