@@ -316,9 +316,24 @@
   .toast{position:absolute;left:16px;right:16px;bottom:96px;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:14px 16px;border-radius:var(--r);box-shadow:var(--e3);opacity:0;pointer-events:none;transform:translateY(16px);transition:all .3s cubic-bezier(.2,0,0,1);z-index:90;}
   .toast.show{opacity:1;transform:translateY(0);}
 
-  .legend{max-width:300px;font-size:12px;color:var(--muted);line-height:1.7;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;}
-  .legend h3{font-size:15px;color:var(--ink);margin-bottom:10px;font-weight:700;} .legend b{color:var(--accent);}
-  @media(max-width:1300px){.legend{display:none;}}
+  .legend{max-width:332px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px 24px 26px;box-shadow:var(--e2);}
+  .legend .ltag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-weak);padding:6px 12px;border-radius:var(--full);}
+  .legend .ltag .ic{width:14px;height:14px;}
+  .legend h2{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin:14px 0 6px;line-height:1.3;}
+  .legend .lead{font-size:13px;color:var(--muted);line-height:1.6;}
+  .legend .grp{margin-top:22px;}
+  .legend .grp > h3{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--green-light-ink);margin-bottom:12px;}
+  .legend .item{display:flex;gap:11px;align-items:flex-start;margin-top:13px;}
+  .legend .item:first-of-type{margin-top:0;}
+  .legend .item .dot2{width:18px;height:18px;border-radius:50%;background:var(--accent-weak);display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px;}
+  .legend .item .dot2 .ic{width:11px;height:11px;color:var(--accent);stroke-width:2.6;}
+  .legend .item .pin{width:18px;height:18px;border-radius:50%;background:#FDECEC;flex:0 0 auto;margin-top:1px;position:relative;}
+  .legend .item .pin::after{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--danger);}
+  .legend .item p{font-size:13px;color:var(--text);line-height:1.55;}
+  .legend .item p b{color:var(--ink);font-weight:700;}
+  .legend .lhint{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.6;}
+  .legend .lhint b{color:var(--accent);font-weight:700;}
+  @media(max-width:1180px){.legend{display:none;}}
 </style>
 </head>
 <body>
@@ -354,7 +369,7 @@
 
   <div class="head">
     <h1>Food Coach<span class="dot">.</span> AI 营养教练</h1>
-    <p>成熟化重做（Airbnb / Google 设计语言）：首页铺开今日计划 + 进度 · 线性 SVG 图标 · 克制深绿 + 中性留白 · 清晰字阶。</p>
+    <p>给"想吃得健康、却没时间也搞不懂"的人，一个会定计划、会教做菜、还陪你坚持的 AI 营养教练。</p>
   </div>
 
   <div class="stage">
@@ -601,12 +616,30 @@
     </div>
 
     <div class="legend">
-      <h3>本次成熟化重做</h3>
-      <p>• <b>首页合并</b>：今日计划直接铺开 + 进度概览（热量/宏量/连续天数）+ 科普，单页搞定；删「计划」tab，深度趋势进「进度」<br>
-      • <b>SVG 线性图标</b>替换所有 emoji 功能图标（导航/按钮/勾选/操作）<br>
-      • <b>克制配色</b>：深绿 #1A7D4B 作唯一强调，中性白卡 + 大留白，去掉亮柠檬大色块<br>
-      • <b>字阶与圆角</b>：Inter 清晰层级、卡片 16 / 按钮 12，去幼态<br><br>
-      首页即可采用计划、打勾、做菜、看进度、读科普。</p>
+      <span class="ltag"><svg class="ic"><use href="#i-target"/></svg> 这款产品在做什么</span>
+      <h2>把"健康吃饭"这件麻烦事，交给一个懂你的 AI 教练</h2>
+      <p class="lead">面向想吃得健康、却没时间研究、也不懂营养的上班族与独居人群。从定计划到做菜，再到坚持，全程有人带。</p>
+
+      <div class="grp">
+        <h3>解决的用户问题</h3>
+        <div class="item"><span class="pin"></span><p><b>不知道吃什么</b>——每天纠结、决策疲劳，越想越懒得管。</p></div>
+        <div class="item"><span class="pin"></span><p><b>太忙靠外卖</b>——想改善却无从下手，也没空规划三餐。</p></div>
+        <div class="item"><span class="pin"></span><p><b>看不懂营养</b>——热量、蛋白、升糖这些概念太抽象。</p></div>
+        <div class="item"><span class="pin"></span><p><b>不会也懒得做饭</b>——一个人住，开火嫌麻烦、又怕翻车。</p></div>
+        <div class="item"><span class="pin"></span><p><b>坚持不下来</b>——记录太累、没有反馈，几天就放弃。</p></div>
+      </div>
+
+      <div class="grp">
+        <h3>核心功能</h3>
+        <div class="item"><span class="dot2"><svg class="ic"><use href="#i-check"/></svg></span><p><b>AI 定制每日计划</b>：按目标、忌口、生活节奏自动生成三餐。</p></div>
+        <div class="item"><span class="dot2"><svg class="ic"><use href="#i-check"/></svg></span><p><b>每餐都讲"为什么"</b>：给出推荐理由与依据，吃得明白、放心。</p></div>
+        <div class="item"><span class="dot2"><svg class="ic"><use href="#i-check"/></svg></span><p><b>拍照记一笔</b>：自动识别食物、估算热量，记录零负担。</p></div>
+        <div class="item"><span class="dot2"><svg class="ic"><use href="#i-check"/></svg></span><p><b>AI 实时教做菜</b>：像视频通话一样一步步带你下厨。</p></div>
+        <div class="item"><span class="dot2"><svg class="ic"><use href="#i-check"/></svg></span><p><b>进度与坚持</b>：热量、宏量、连续打卡，用正反馈托住你。</p></div>
+        <div class="item"><span class="dot2"><svg class="ic"><use href="#i-check"/></svg></span><p><b>随身 AI 助手</b>：换餐、重新生成、随时答疑，一句话搞定。</p></div>
+      </div>
+
+      <p class="lhint"><b>试一试 →</b> 右侧手机里点「我的 → 我的目标」，走一遍引导，AI 就会现场生成你的专属计划。</p>
     </div>
   </div>
 
